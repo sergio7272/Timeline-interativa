@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline - Engenharia de Software</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+
+    .timeline-card {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: cardReveal 0.7s ease forwards;
+    }
+    @keyframes cardReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .timeline-card:nth-child(1) { animation-delay: 0.1s; }
+    .timeline-card:nth-child(2) { animation-delay: 0.2s; }
+    .timeline-card:nth-child(3) { animation-delay: 0.3s; }
+    .timeline-card:nth-child(4) { animation-delay: 0.4s; }
+    .timeline-card:nth-child(5) { animation-delay: 0.5s; }
+    .timeline-card:nth-child(6) { animation-delay: 0.6s; }
+    .timeline-card:nth-child(7) { animation-delay: 0.7s; }
+    .timeline-card:nth-child(8) { animation-delay: 0.8s; }
+    .timeline-card:nth-child(9) { animation-delay: 0.9s; }
+    .timeline-card:nth-child(10) { animation-delay: 1.0s; }
+    .timeline-card:nth-child(11) { animation-delay: 1.1s; }
+    .timeline-card:nth-child(12) { animation-delay: 1.2s; }
+
+    .card-inner {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-inner:hover {
+      transform: translateY(-4px);
+    }
+
+    .axis-badge {
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .filter-btn {
+      transition: all 0.25s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .filter-btn:hover {
+      transform: scale(1.05);
+    }
+    .filter-btn.active {
+      transform: scale(1.05);
+    }
+
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .timeline-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 3px solid;
+      position: absolute;
+      left: 50%;
+      top: 24px;
+      transform: translateX(-50%);
+      z-index: 2;
+      transition: transform 0.3s ease;
+    }
+    .timeline-card:hover .timeline-dot {
+      transform: translateX(-50%) scale(1.3);
+    }
+
+    .year-label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 800;
+      font-size: 2.5rem;
+      line-height: 1;
+      opacity: 0.12;
+      position: absolute;
+      top: -8px;
+    }
+
+    .challenge-box {
+      border-left: 3px solid;
+      padding-left: 12px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-line { left: 24px; }
+      .timeline-dot { left: 24px; }
+      .year-label { position: static; opacity: 0.2; margin-bottom: 4px; }
+    }
+
+    .header-glow {
+      background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.15) 0%, transparent 70%);
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 300px;
+      pointer-events: none;
+    }
+
+    .card-expanded .card-details {
+      max-height: 500px;
+      opacity: 1;
+    }
+    .card-details {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="w-full h-full overflow-auto" style="background-color: #0f1117; color: #e2e4ea;">
+   <div class="header-glow"></div>
+   <header class="relative z-10 text-center pt-12 pb-6 px-4">
+    <h1 id="main-title" style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 800; color: #e2e4ea;">Evolução da Engenharia de Software</h1>
+    <p id="subtitle" class="mt-3 max-w-2xl mx-auto" style="font-family: 'DM Sans', sans-serif; font-size: 1.1rem; color: #8b8fa3;">UML, Computação em Nuvem, IA e a Revolução do Git</p>
+   </header>
+   <nav class="relative z-10 flex flex-wrap justify-center gap-3 px-4 pb-8" role="navigation" aria-label="Filtros da timeline"><button class="filter-btn active axis-badge" data-filter="all" style="background: #1e2030; color: #e2e4ea; border-color: #6366f1;">Todos</button> <button class="filter-btn axis-badge" data-filter="uml" style="background: #1e2030; color: #f59e42; border-color: transparent;"> <i data-lucide="layers" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"></i>UML </button> <button class="filter-btn axis-badge" data-filter="cloud" style="background: #1e2030; color: #38bdf8; border-color: transparent;"> <i data-lucide="cloud" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"></i>IA &amp; Nuvem </button> <button class="filter-btn axis-badge" data-filter="git" style="background: #1e2030; color: #a78bfa; border-color: transparent;"> <i data-lucide="git-branch" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"></i>Git &amp; GitHub </button>
+   </nav>
+   <main id="timeline-container" class="relative max-w-5xl mx-auto px-4 pb-20" role="main">
+    <div class="timeline-line" style="background: linear-gradient(to bottom, #6366f1, #a78bfa, #38bdf8);"></div>
+   </main>
+   <footer class="text-center pb-10 px-4" style="font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: #4a4d5e;">
+    Clique nos cards para expandir os detalhes
+   </footer>
+  </div>
+  <script>
+const timelineData = [
+  {
+    year: 1977,
+    axis: "uml",
+    title: "Primeiros Métodos de Modelagem",
+    context: "Peter Chen publica o Modelo Entidade-Relacionamento (ER). Pela primeira vez, desenvolvedores têm uma notação visual padronizada para representar dados e suas relações.",
+    challenge: "Equipes de banco de dados não conseguiam comunicar a estrutura dos sistemas entre si. Cada empresa inventava sua própria notação, gerando confusão em projetos grandes.",
+    importance: "Estabeleceu a base para toda a modelagem visual que viria depois, mostrando que diagramas padronizados reduzem erros de comunicação."
+  },
+  {
+    year: 1989,
+    axis: "uml",
+    title: "Guerra dos Métodos OO",
+    context: "Surgem dezenas de metodologias orientadas a objeto concorrentes: OMT (Rumbaugh), OOSE (Jacobson) e o método de Booch. Cada uma com notação e processo próprios.",
+    challenge: "Uma empresa que contratasse dois consultores diferentes receberia diagramas incompatíveis para o mesmo sistema, tornando a manutenção um pesadelo.",
+    importance: "A fragmentação forçou a indústria a buscar unificação, plantando a semente do que se tornaria a UML."
+  },
+  {
+    year: 1997,
+    axis: "uml",
+    title: "UML 1.0 — A Unificação",
+    context: "Grady Booch, James Rumbaugh e Ivar Jacobson (os \"Três Amigos\") publicam a UML 1.0, adotada pela OMG como padrão internacional de modelagem.",
+    challenge: "Integrar três visões distintas em uma linguagem coerente sem perder a expressividade de cada método original exigiu anos de negociação técnica.",
+    importance: "Pela primeira vez, a indústria inteira compartilhava uma única linguagem visual para especificar, construir e documentar software."
+  },
+  {
+    year: 2006,
+    axis: "cloud",
+    title: "AWS Lança a Nuvem Comercial",
+    context: "A Amazon lança S3 e EC2, inaugurando a era da infraestrutura como serviço. Startups podem criar sistemas globais sem comprar um único servidor físico.",
+    challenge: "Empresas pequenas não tinham capital para montar data centers. Um pico de acessos podia derrubar o site inteiro por falta de capacidade.",
+    importance: "Democratizou o acesso à infraestrutura de grande escala, mudando para sempre como software é implantado e escalado."
+  },
+  {
+    year: 2008,
+    axis: "git",
+    title: "Nasce o GitHub",
+    context: "Tom Preston-Werner, Chris Wanstrath e PJ Hyett lançam o GitHub, uma plataforma social para hospedagem de repositórios Git com interface web amigável.",
+    challenge: "O Git era poderoso, mas sua interface de linha de comando assustava muitos desenvolvedores. Contribuir para projetos open-source exigia configuração manual complexa.",
+    importance: "Transformou o Git de uma ferramenta de nicho em padrão da indústria e criou a maior comunidade de código aberto do mundo."
+  },
+  {
+    year: 2011,
+    axis: "cloud",
+    title: "Kubernetes e a Era dos Contêineres",
+    context: "O Docker (2013) e o Kubernetes (2014, open-source pelo Google) revolucionam o deploy. Aplicações são empacotadas em contêineres portáteis e orquestradas automaticamente.",
+    challenge: "Empresas com centenas de microsserviços não conseguiam gerenciar deploys manuais. Uma atualização errada em um serviço derrubava toda a cadeia.",
+    importance: "Permitiu que equipes implantassem e escalassem milhares de serviços de forma confiável, inaugurando a arquitetura cloud-native."
+  },
+  {
+    year: 2013,
+    axis: "git",
+    title: "Git Domina o Mundo",
+    context: "O Git ultrapassa todos os outros sistemas de controle de versão. O GitHub atinge 10 milhões de repositórios. Empresas como Microsoft e Google adotam Git internamente.",
+    challenge: "Grandes corporações precisavam migrar milhões de linhas de código de sistemas legados (SVN, TFS) para Git sem interromper o desenvolvimento.",
+    importance: "Consolidou o modelo distribuído de versionamento como padrão universal, eliminando o lock-in de ferramentas proprietárias."
+  },
+  {
+    year: 2015,
+    axis: "cloud",
+    title: "Serverless e Funções na Nuvem",
+    context: "AWS Lambda populariza o modelo serverless: desenvolvedores escrevem apenas funções e a nuvem cuida de tudo — provisionamento, escala e cobrança por execução.",
+    challenge: "Manter servidores ociosos 24h era caro. Equipes perdiam tempo configurando infraestrutura em vez de escrever lógica de negócio.",
+    importance: "Reduziu drasticamente a barreira entre escrever código e colocá-lo em produção, acelerando ciclos de entrega."
+  },
+  {
+    year: 2018,
+    axis: "git",
+    title: "Microsoft Compra o GitHub",
+    context: "A Microsoft adquire o GitHub por US$ 7,5 bilhões, sinalizando que o open-source e a colaboração distribuída são o futuro da engenharia de software.",
+    challenge: "A comunidade temia que a Microsoft, historicamente fechada, restringisse o GitHub. Houve migração em massa temporária para GitLab.",
+    importance: "Validou economicamente o modelo open-source e acelerou investimentos em ferramentas de colaboração para desenvolvedores."
+  },
+  {
+    year: 2020,
+    axis: "cloud",
+    title: "MLOps e IA em Produção",
+    context: "Ferramentas como MLflow, Kubeflow e SageMaker amadurecem. Engenharia de software se funde com machine learning: versionamento de modelos, pipelines de dados e deploy automatizado de IA.",
+    challenge: "Modelos de IA que funcionavam em notebooks Jupyter falhavam em produção. Não havia padrão para versionar, testar e monitorar modelos como se faz com código.",
+    importance: "Criou uma nova disciplina (MLOps) que aplica práticas de engenharia de software ao ciclo de vida da inteligência artificial."
+  },
+  {
+    year: 2021,
+    axis: "git",
+    title: "GitHub Copilot — IA no Editor",
+    context: "O GitHub lança o Copilot, assistente de programação baseado em IA (Codex/GPT). O código do mundo inteiro no GitHub serve de base para treinar modelos que escrevem código.",
+    challenge: "Desenvolvedores gastavam tempo enorme em código repetitivo (boilerplate). Ao mesmo tempo, surgiam questões éticas sobre uso de código open-source para treinar IA.",
+    importance: "Marcou o início da era de programação assistida por IA, redefinindo o papel do desenvolvedor de escritor para revisor de código."
+  },
+  {
+    year: 2024,
+    axis: "cloud",
+    title: "Engenharia de Software com IA Generativa",
+    context: "LLMs (GPT-4, Claude, Gemini) são integrados em todo o ciclo de desenvolvimento: requisitos, design, código, testes e documentação. A modelagem de sistemas ganha novas ferramentas baseadas em IA.",
+    challenge: "Garantir que código gerado por IA seja seguro, correto e mantenível. A velocidade de geração supera a capacidade humana de revisão.",
+    importance: "Representa a maior transformação na engenharia de software desde a orientação a objetos, exigindo novos processos, habilidades e ética profissional."
+  }
+];
+
+const axisConfig = {
+  uml: { color: "#f59e42", label: "UML", icon: "layers" },
+  cloud: { color: "#38bdf8", label: "IA & Nuvem", icon: "cloud" },
+  git: { color: "#a78bfa", label: "Git & GitHub", icon: "git-branch" }
+};
+
+const defaultConfig = {
+  main_title: "Evolução da Engenharia de Software",
+  subtitle: "UML, Computação em Nuvem, IA e a Revolução do Git",
+  background_color: "#0f1117",
+  surface_color: "#1a1d2e",
+  text_color: "#e2e4ea",
+  primary_action_color: "#6366f1",
+  secondary_action_color: "#8b8fa3",
+  font_family: "DM Sans",
+  font_size: 16
+};
+
+let currentFilter = "all";
+let expandedCards = new Set();
+
+function createCardHTML(item, index, total) {
+  const cfg = axisConfig[item.axis];
+  const isLeft = index % 2 === 0;
+  const cardId = `card-${item.year}-${item.axis}`;
+
+  return `
+    <div class="timeline-card relative mb-12 md:mb-16" data-axis="${item.axis}" data-card-id="${cardId}">
+      <div class="timeline-dot" style="border-color: ${cfg.color}; background: #0f1117;"></div>
+
+      <div class="md:flex ${isLeft ? '' : 'md:flex-row-reverse'}">
+        <div class="md:w-1/2 ${isLeft ? 'md:pr-12 md:text-right' : 'md:pl-12'} pl-14 md:pl-0">
+          <div class="year-label ${isLeft ? 'md:right-12' : 'md:left-12'}" style="color: ${cfg.color};">${item.year}</div>
+        </div>
+        <div class="md:w-1/2 ${isLeft ? 'md:pl-12' : 'md:pr-12'} pl-14 md:pl-12">
+          <div class="card-inner rounded-xl p-5 cursor-pointer" style="background: #1a1d2e; border: 1px solid #2a2d3e; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"
+               onclick="toggleCard('${cardId}')" role="button" tabindex="0"
+               onkeydown="if(event.key==='Enter')toggleCard('${cardId}')">
+            <div class="flex items-center gap-2 mb-3 flex-wrap">
+              <span class="axis-badge" style="background: ${cfg.color}22; color: ${cfg.color};">
+                <i data-lucide="${cfg.icon}" style="width:11px;height:11px;display:inline;vertical-align:middle;margin-right:2px;"></i>
+                ${cfg.label}
+              </span>
+              <span class="text-xs font-bold" style="color: ${cfg.color};">${item.year}</span>
+            </div>
+
+            <h3 class="font-bold text-lg mb-2 card-title" style="font-family: 'Playfair Display', serif; color: #e2e4ea;">${item.title}</h3>
+
+            <p class="text-sm leading-relaxed card-context" style="color: #8b8fa3;">${item.context}</p>
+
+            <div class="card-details" id="details-${cardId}">
+              <div class="challenge-box mt-4" style="border-color: ${cfg.color};">
+                <p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: ${cfg.color};">
+                  <i data-lucide="alert-triangle" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"></i>
+                  Desafio Real
+                </p>
+                <p class="text-sm leading-relaxed" style="color: #c4c7d4;">${item.challenge}</p>
+              </div>
+              <div class="mt-3 p-3 rounded-lg" style="background: ${cfg.color}11;">
+                <p class="text-xs font-semibold uppercase tracking-wide mb-1" style="color: ${cfg.color};">
+                  <i data-lucide="sparkles" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"></i>
+                  Por que importa
+                </p>
+                <p class="text-sm leading-relaxed" style="color: #c4c7d4;">${item.importance}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 mt-3 expand-hint" style="color: #4a4d5e; font-size: 0.75rem;">
+              <i data-lucide="chevron-down" style="width:14px;height:14px;" class="expand-icon"></i>
+              <span class="expand-text">Expandir detalhes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTimeline(filter) {
+  const container = document.getElementById("timeline-container");
+  const filtered = filter === "all" ? timelineData : timelineData.filter(d => d.axis === filter);
+
+  const cardsHTML = filtered.map((item, i) => createCardHTML(item, i, filtered.length)).join("");
+  container.innerHTML = `<div class="timeline-line" style="background: linear-gradient(to bottom, #6366f1, #a78bfa, #38bdf8);"></div>` + cardsHTML;
+
+  expandedCards.forEach(id => {
+    const el = document.getElementById(`details-${id}`);
+    if (el) {
+      el.style.maxHeight = "500px";
+      el.style.opacity = "1";
+      const card = el.closest("[data-card-id]");
+      if (card) {
+        card.querySelector(".expand-text").textContent = "Recolher";
+        card.querySelector(".expand-icon").style.transform = "rotate(180deg)";
+      }
+    }
+  });
+
+  lucide.createIcons();
+}
+
+function toggleCard(cardId) {
+  const details = document.getElementById(`details-${cardId}`);
+  const card = details.closest("[data-card-id]");
+  const text = card.querySelector(".expand-text");
+  const icon = card.querySelector(".expand-icon");
+
+  if (expandedCards.has(cardId)) {
+    expandedCards.delete(cardId);
+    details.style.maxHeight = "0";
+    details.style.opacity = "0";
+    text.textContent = "Expandir detalhes";
+    icon.style.transform = "rotate(0deg)";
+  } else {
+    expandedCards.add(cardId);
+    details.style.maxHeight = "500px";
+    details.style.opacity = "1";
+    text.textContent = "Recolher";
+    icon.style.transform = "rotate(180deg)";
+  }
+}
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll(".filter-btn").forEach(b => {
+      b.style.borderColor = "transparent";
+      b.classList.remove("active");
+    });
+    btn.style.borderColor = "#6366f1";
+    btn.classList.add("active");
+    renderTimeline(currentFilter);
+  });
+});
+
+function applyConfig(config) {
+  const bg = config.background_color || defaultConfig.background_color;
+  const surface = config.surface_color || defaultConfig.surface_color;
+  const text = config.text_color || defaultConfig.text_color;
+  const primary = config.primary_action_color || defaultConfig.primary_action_color;
+  const secondary = config.secondary_action_color || defaultConfig.secondary_action_color;
+  const font = config.font_family || defaultConfig.font_family;
+  const fontSize = config.font_size || defaultConfig.font_size;
+
+  const wrapper = document.getElementById("app-wrapper");
+  wrapper.style.backgroundColor = bg;
+  wrapper.style.color = text;
+
+  const title = document.getElementById("main-title");
+  title.textContent = config.main_title || defaultConfig.main_title;
+  title.style.color = text;
+  title.style.fontFamily = `'Playfair Display', ${font}, serif`;
+  title.style.fontSize = `${fontSize * 2.5}px`;
+
+  const sub = document.getElementById("subtitle");
+  sub.textContent = config.subtitle || defaultConfig.subtitle;
+  sub.style.color = secondary;
+  sub.style.fontFamily = `${font}, sans-serif`;
+  sub.style.fontSize = `${fontSize * 1.1}px`;
+
+  document.querySelectorAll(".card-inner").forEach(card => {
+    card.style.background = surface;
+    card.style.borderColor = primary + "33";
+  });
+
+  document.querySelectorAll(".card-title").forEach(el => {
+    el.style.color = text;
+    el.style.fontFamily = `'Playfair Display', ${font}, serif`;
+    el.style.fontSize = `${fontSize * 1.15}px`;
+  });
+
+  document.querySelectorAll(".card-context").forEach(el => {
+    el.style.color = secondary;
+    el.style.fontFamily = `${font}, sans-serif`;
+    el.style.fontSize = `${fontSize * 0.875}px`;
+  });
+
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.style.background = surface;
+    if (btn.classList.contains("active")) {
+      btn.style.borderColor = primary;
+    }
+  });
+
+  document.querySelectorAll(".timeline-dot").forEach(dot => {
+    dot.style.background = bg;
+  });
+}
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    applyConfig(config);
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      {
+        get: () => config.background_color || defaultConfig.background_color,
+        set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+      },
+      {
+        get: () => config.surface_color || defaultConfig.surface_color,
+        set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+      },
+      {
+        get: () => config.text_color || defaultConfig.text_color,
+        set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+      },
+      {
+        get: () => config.primary_action_color || defaultConfig.primary_action_color,
+        set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); }
+      },
+      {
+        get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+        set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); }
+      }
+    ],
+    borderables: [],
+    fontEditable: {
+      get: () => config.font_family || defaultConfig.font_family,
+      set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+    },
+    fontSizeable: {
+      get: () => config.font_size || defaultConfig.font_size,
+      set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+    }
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ["main_title", config.main_title || defaultConfig.main_title],
+    ["subtitle", config.subtitle || defaultConfig.subtitle]
+  ])
+});
+
+renderTimeline("all");
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9dbd8141612df61e',t:'MTc3MzQzMDc2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
